@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/attendance_model.dart';
 import '../models/payment_model.dart';
 import '../models/student_model.dart';
 
@@ -36,6 +37,24 @@ class StudentRepository {
 
     return snapshot.docs
         .map((doc) => PaymentModel.fromMap(doc.data(), doc.id))
+        .toList();
+  }
+
+  Future<List<AttendanceModel>> getAttendance(
+    String orgId,
+    String studentUid,
+  ) async {
+    final snapshot = await _firestore
+        .collection('organizations')
+        .doc(orgId)
+        .collection('students')
+        .doc(studentUid)
+        .collection('attendance')
+        .orderBy('timestamp', descending: true)
+        .get();
+
+    return snapshot.docs
+        .map((doc) => AttendanceModel.fromMap(doc.data(), doc.id))
         .toList();
   }
 }

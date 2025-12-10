@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/auth_service.dart';
+import '../services/database_service.dart';
+import '../models/attendance_model.dart';
+import '../models/student_model.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -10,27 +15,83 @@ class AttendanceScreen extends StatefulWidget {
 
 class _AttendanceScreenState extends State<AttendanceScreen> {
   String _selectedFilter = "All";
+  List<AttendanceModel>? _allRecords;
+  bool _isLoading = true;
+  String? _errorMessage;
 
-  final List<Map<String, String>> _allRecords = [
-    {"date": "01 Feb 2025", "status": "Boarded"},
-    {"date": "31 Jan 2025", "status": "Boarded"},
-    {"date": "30 Jan 2025", "status": "Absent"},
-    {"date": "29 Jan 2025", "status": "Boarded"},
-    {"date": "28 Jan 2025", "status": "Boarded"},
-    {"date": "27 Jan 2025", "status": "Absent"},
-  ];
+  final AuthService _authService = AuthService();
+  final DatabaseService _dbService = DatabaseService();
 
-  List<Map<String, String>> get _filteredRecords {
-    if (_selectedFilter == "All") {
-      return _allRecords;
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final user = _authService.currentUser;
+      if (user == null) {
+        throw Exception("User not logged in");
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      final orgId = prefs.getString('orgId');
+      if (orgId == null) {
+        throw Exception("Organization ID not found");
+      }
+
+      // First fetch student to get the student UID (doc ID)
+      // We listen to the stream once or we can just assume the one from home is cached?
+      // Stream subscription is okay but Future is easier for one-time fetch.
+      // But getStudent is a stream. Let's filter it.
+      final student = await _dbService.getStudent(orgId, user.uid).first;
+
+      if (student == null) {
+        throw Exception("Student profile not found");
+      }
+
+      final attendance = await _dbService.getAttendance(orgId, student.uid);
+
+      if (mounted) {
+        setState(() {
+          _allRecords = attendance;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
     }
-    return _allRecords
-        .where((record) => record["status"] == _selectedFilter)
+  }
+
+  List<AttendanceModel> get _filteredRecords {
+    if (_allRecords == null) return [];
+    if (_selectedFilter == "All") {
+      return _allRecords!;
+    }
+    return _allRecords!
+        .where((record) => record.status == _selectedFilter)
         .toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text("Attendance History")),
+        body: Center(child: Text("Error: $_errorMessage")),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text("Attendance History")),
       body: Column(
@@ -52,29 +113,34 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
           // List
           Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.all(12.w),
-              itemCount: _filteredRecords.length,
-              itemBuilder: (context, index) {
-                final r = _filteredRecords[index];
-                final isBoarded = r["status"] == "Boarded";
+            child: _filteredRecords.isEmpty
+                ? const Center(child: Text("No records found"))
+                : ListView.builder(
+                    padding: EdgeInsets.all(12.w),
+                    itemCount: _filteredRecords.length,
+                    itemBuilder: (context, index) {
+                      final r = _filteredRecords[index];
+                      final isBoarded = r.status == "Boarded";
 
-                return Card(
-                  child: ListTile(
-                    leading: Icon(
-                      isBoarded ? Icons.check_circle : Icons.cancel,
-                      color: isBoarded ? Colors.green : Colors.red,
-                      size: 24.r,
-                    ),
-                    title: Text(r["date"]!, style: TextStyle(fontSize: 16.sp)),
-                    subtitle: Text(
-                      "Status: ${r['status']}",
-                      style: TextStyle(fontSize: 14.sp),
-                    ),
+                      return Card(
+                        child: ListTile(
+                          leading: Icon(
+                            isBoarded ? Icons.check_circle : Icons.cancel,
+                            color: isBoarded ? Colors.green : Colors.red,
+                            size: 24.r,
+                          ),
+                          title: Text(
+                            r.date,
+                            style: TextStyle(fontSize: 16.sp),
+                          ),
+                          subtitle: Text(
+                            "Status: ${r.status}",
+                            style: TextStyle(fontSize: 14.sp),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),

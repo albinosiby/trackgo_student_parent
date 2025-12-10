@@ -6,17 +6,34 @@ class DriverRepository {
 
   Future<DriverModel?> getDriverByBus(String orgId, String busId) async {
     try {
-      final querySnapshot = await _firestore
+      // 1. Get Bus Document to find driver_id
+      final busDoc = await _firestore
+          .collection('organizations')
+          .doc(orgId)
+          .collection('buses')
+          .doc(busId)
+          .get();
+
+      if (!busDoc.exists || busDoc.data() == null) {
+        return null;
+      }
+
+      final driverId = busDoc.data()!['driver_id'];
+
+      if (driverId == null || driverId is! String || driverId.isEmpty) {
+        return null;
+      }
+
+      // 2. Get Driver Document
+      final driverDoc = await _firestore
           .collection('organizations')
           .doc(orgId)
           .collection('drivers')
-          .where('assigned_bus', isEqualTo: busId)
-          .limit(1)
+          .doc(driverId)
           .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
-        final doc = querySnapshot.docs.first;
-        return DriverModel.fromMap(doc.data(), doc.id);
+      if (driverDoc.exists && driverDoc.data() != null) {
+        return DriverModel.fromMap(driverDoc.data()!, driverDoc.id);
       }
       return null;
     } catch (e) {
