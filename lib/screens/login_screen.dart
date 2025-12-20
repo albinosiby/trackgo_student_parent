@@ -6,6 +6,11 @@ import 'parent_main_screen.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
 import '../models/organization_model.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
+import '../widgets/background_wrapper.dart';
+import '../widgets/custom_buttons.dart';
+import '../widgets/glass_container.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -152,105 +157,131 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(24.w),
+    return BackgroundWrapper(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: Center(
             child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: 24.w),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.shield_moon_rounded, size: 80.r),
-                  SizedBox(height: 16.h),
-                  Text(
-                    "Student/Parent Login",
-                    style: TextStyle(
-                      fontSize: 22.sp,
-                      fontWeight: FontWeight.bold,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(50.r),
+                    child: Image.asset(
+                      'assets/images/trackgo_logo.png',
+                      height: 100.h,
+                      width: 100.w,
+                      fit: BoxFit.cover,
                     ),
                   ),
-                  SizedBox(height: 24.h),
+                  SizedBox(height: 32.h),
+                  GlassContainer(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(24.w),
+                    child: Column(
+                      children: [
+                        Text("Welcome Back", style: AppTextStyles.heading2),
+                        SizedBox(height: 8.h),
+                        Text("Student/Parent Login", style: AppTextStyles.body),
+                        SizedBox(height: 32.h),
 
-                  // Organization selection
-                  if (!otpSent)
-                    FutureBuilder<List<OrganizationModel>>(
-                      future: _dbService.getOrganizations(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        }
-                        if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        }
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return const Text('No organizations found');
-                        }
+                        // Organization selection
+                        if (!otpSent)
+                          FutureBuilder<List<OrganizationModel>>(
+                            future: _dbService.getOrganizations(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const CircularProgressIndicator();
+                              }
+                              if (snapshot.hasError) {
+                                return Text(
+                                  'Error: ${snapshot.error}',
+                                  style: const TextStyle(
+                                    color: AppColors.error,
+                                  ),
+                                );
+                              }
+                              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                return const Text(
+                                  'No organizations found',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                  ),
+                                );
+                              }
 
-                        return DropdownButtonFormField<String>(
-                          value: _selectedOrgId,
-                          hint: const Text("Select Organization"),
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.business),
+                              return DropdownButtonFormField<String>(
+                                isExpanded: true,
+                                value: _selectedOrgId,
+                                hint: const Text("Select Organization"),
+                                dropdownColor: AppColors.backgroundBottom,
+                                iconEnabledColor: AppColors.primaryAccent,
+                                style: AppTextStyles.body,
+                                decoration: const InputDecoration(
+                                  labelText: "Organization",
+                                  prefixIcon: Icon(Icons.business),
+                                ),
+                                items: snapshot.data!.map((org) {
+                                  return DropdownMenuItem<String>(
+                                    value: org.id,
+                                    child: Text(
+                                      org.name,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedOrgId = value;
+                                  });
+                                },
+                              );
+                            },
                           ),
-                          items: snapshot.data!.map((org) {
-                            return DropdownMenuItem<String>(
-                              value: org.id,
-                              child: Text(org.name),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedOrgId = value;
-                            });
-                          },
-                        );
-                      },
-                    ),
 
-                  if (!otpSent) SizedBox(height: 16.h),
+                        if (!otpSent) SizedBox(height: 20.h),
 
-                  // Phone number
-                  TextField(
-                    controller: phoneController,
-                    keyboardType: TextInputType.phone,
-                    enabled: !otpSent,
-                    decoration: const InputDecoration(
-                      labelText: "Phone Number",
-                      prefixIcon: Icon(Icons.phone),
-                      border: OutlineInputBorder(),
-                      hintText: "Enter 10 digit number",
+                        // Phone number
+                        TextField(
+                          controller: phoneController,
+                          keyboardType: TextInputType.phone,
+                          enabled: !otpSent,
+                          style: AppTextStyles.body,
+                          decoration: const InputDecoration(
+                            labelText: "Phone Number",
+                            prefixIcon: Icon(Icons.phone),
+                            hintText: "Enter 10 digit number",
+                          ),
+                        ),
+
+                        SizedBox(height: 16.h),
+
+                        // OTP
+                        if (otpSent)
+                          TextField(
+                            controller: otpController,
+                            keyboardType: TextInputType.number,
+                            style: AppTextStyles.body,
+                            decoration: const InputDecoration(
+                              labelText: "Enter OTP",
+                              prefixIcon: Icon(Icons.lock),
+                            ),
+                          ),
+
+                        SizedBox(height: 32.h),
+
+                        // Login Button
+                        PrimaryButton(
+                          isLoading: _isLoading,
+                          text: otpSent ? "Login" : "Send OTP",
+                          onPressed: otpSent ? _verifyOTP : _sendOTP,
+                        ),
+                      ],
                     ),
                   ),
-
-                  SizedBox(height: 16.h),
-
-                  // OTP
-                  if (otpSent)
-                    TextField(
-                      controller: otpController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: "Enter OTP",
-                        prefixIcon: Icon(Icons.lock),
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-
-                  SizedBox(height: 24.h),
-
-                  // Login Button
-                  if (_isLoading)
-                    const CircularProgressIndicator()
-                  else
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: otpSent ? _verifyOTP : _sendOTP,
-                        child: Text(otpSent ? "Login" : "Send OTP"),
-                      ),
-                    ),
                 ],
               ),
             ),

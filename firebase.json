@@ -1,1 +1,42 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"bus-management-c8612","appId":"1:588222641037:android:677bf40875a12ad614c3c4","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"bus-management-c8612","configurations":{"android":"1:588222641037:android:677bf40875a12ad614c3c4","ios":"1:588222641037:ios:fb25939adaa20bbe14c3c4","macos":"1:588222641037:ios:fb25939adaa20bbe14c3c4","web":"1:588222641037:web:7ccd61411d6e379414c3c4","windows":"1:588222641037:web:3e2fd81fdf810f6414c3c4"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "bus-management-c8612",
+          "appId": "1:588222641037:android:677bf40875a12ad614c3c4",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "bus-management-c8612",
+          "configurations": {
+            "android": "1:588222641037:android:677bf40875a12ad614c3c4",
+            "ios": "1:588222641037:ios:fb25939adaa20bbe14c3c4",
+            "macos": "1:588222641037:ios:fb25939adaa20bbe14c3c4",
+            "web": "1:588222641037:web:7ccd61411d6e379414c3c4",
+            "windows": "1:588222641037:web:3e2fd81fdf810f6414c3c4"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}

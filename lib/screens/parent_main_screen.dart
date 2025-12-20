@@ -5,6 +5,7 @@ import 'map_screen.dart';
 import 'attendance_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
+import '../widgets/background_wrapper.dart';
 
 class ParentMainScreen extends StatefulWidget {
   final String orgId;
@@ -24,34 +25,40 @@ class _ParentMainScreenState extends State<ParentMainScreen> {
     super.initState();
     pages = [
       HomeScreen(orgId: widget.orgId),
-      const MapScreen(),
+      MapScreen(orgId: widget.orgId),
       const AttendanceScreen(),
-      const NotificationsScreen(),
+      NotificationsScreen(orgId: widget.orgId),
       const ProfileScreen(),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: pages[index],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
-        onDestinationSelected: (i) => setState(() => index = i),
-        height: 80.h,
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home), label: "Home"),
-          NavigationDestination(icon: Icon(Icons.map), label: "Track"),
-          NavigationDestination(
-            icon: Icon(Icons.check_circle_outline),
-            label: "Attendance",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications),
-            label: "Alerts",
-          ),
-          NavigationDestination(icon: Icon(Icons.person), label: "Profile"),
-        ],
+    return BackgroundWrapper(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: pages[index],
+        extendBody: false, // Do not allow body to extend behind nav bar
+        bottomNavigationBar: NavigationBar(
+          // backgroundColor: handled by theme
+          elevation: 0,
+          selectedIndex: index,
+          onDestinationSelected: (i) => setState(() => index = i),
+          height: 80.h,
+          destinations: const [
+            NavigationDestination(icon: Icon(Icons.home), label: "Home"),
+            NavigationDestination(icon: Icon(Icons.map), label: "Track"),
+            NavigationDestination(
+              icon: Icon(Icons.check_circle_outline),
+              label: "Attendance",
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.notifications),
+              label: "Alerts",
+            ),
+            NavigationDestination(icon: Icon(Icons.person), label: "Profile"),
+          ],
+        ),
       ),
     );
   }

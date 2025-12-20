@@ -16,6 +16,12 @@ class StudentModel {
   final double paid;
   final double due;
   final String? paymentType;
+  final bool isOnBus;
+
+  final String? studentPhone;
+  final String? routeId;
+  final String? routeName;
+  final bool canTravel;
 
   // Details from Profile Screen
   final String parentName;
@@ -39,9 +45,14 @@ class StudentModel {
     this.paid = 0.0,
     this.due = 0.0,
     this.paymentType,
+    this.studentPhone,
+    this.routeId,
+    this.routeName,
+    this.canTravel = false,
     required this.parentName,
     required this.parentPhone,
     required this.parentEmail,
+    this.isOnBus = false,
   });
 
   factory StudentModel.fromMap(Map<String, dynamic> data, String uid) {
@@ -62,9 +73,14 @@ class StudentModel {
       paid: double.tryParse(data['paid']?.toString() ?? '0') ?? 0.0,
       due: double.tryParse(data['due']?.toString() ?? '0') ?? 0.0,
       paymentType: data['payment_type'],
+      studentPhone: data['student_phone'],
+      routeId: data['route_id'],
+      routeName: data['route_name'],
+      canTravel: data['can_travel'] ?? false,
       parentName: data['parent_name'] ?? 'Parent',
       parentPhone: data['parent_phone'] ?? '',
       parentEmail: data['parent_email'] ?? '',
+      isOnBus: data['is_on_bus'] ?? false,
     );
   }
 }

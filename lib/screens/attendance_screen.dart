@@ -5,6 +5,9 @@ import '../services/auth_service.dart';
 import '../services/database_service.dart';
 import '../models/attendance_model.dart';
 import '../models/student_model.dart';
+import '../widgets/glass_container.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -122,21 +125,41 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       final r = _filteredRecords[index];
                       final isBoarded = r.status == "Boarded";
 
-                      return Card(
-                        child: ListTile(
-                          leading: Icon(
-                            isBoarded ? Icons.check_circle : Icons.cancel,
-                            color: isBoarded ? Colors.green : Colors.red,
-                            size: 24.r,
-                          ),
-                          title: Text(
-                            r.date,
-                            style: TextStyle(fontSize: 16.sp),
-                          ),
-                          subtitle: Text(
-                            "Status: ${r.status}",
-                            style: TextStyle(fontSize: 14.sp),
-                          ),
+                      return GlassContainer(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16.w,
+                          vertical: 12.h,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              isBoarded ? Icons.check_circle : Icons.cancel,
+                              color: isBoarded
+                                  ? AppColors.success
+                                  : AppColors.error,
+                              size: 24.r,
+                            ),
+                            SizedBox(width: 16.w),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    r.date,
+                                    style: AppTextStyles.body.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4.h),
+                                  Text(
+                                    "Status: ${r.status}",
+                                    style: AppTextStyles.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     },
@@ -148,16 +171,31 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   Widget _buildFilterChip(String label) {
-    return ChoiceChip(
-      label: Text(label, style: TextStyle(fontSize: 14.sp)),
-      selected: _selectedFilter == label,
-      onSelected: (selected) {
-        if (selected) {
-          setState(() {
-            _selectedFilter = label;
-          });
-        }
+    final isSelected = _selectedFilter == label;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedFilter = label;
+        });
       },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryAccent : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.primaryAccent : Colors.white54,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14.sp,
+            color: isSelected ? Colors.black : Colors.white,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
     );
   }
 }

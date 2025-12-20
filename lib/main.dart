@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'screens/login_screen.dart';
 import 'screens/parent_main_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +32,7 @@ class ParentApp extends StatelessWidget {
         return MaterialApp(
           title: "Parent App",
           debugShowCheckedModeBanner: false,
-          theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo),
+          theme: AppTheme.darkTheme,
           home: FirebaseAuth.instance.currentUser != null && orgId != null
               ? ParentMainScreen(orgId: orgId!)
               : const LoginScreen(),

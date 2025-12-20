@@ -6,6 +6,9 @@ import '../services/database_service.dart';
 import '../models/student_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'payment_history_screen.dart';
+import '../widgets/glass_container.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -118,75 +121,96 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 SizedBox(height: 16.h),
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(16.w),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _FeeInfoTile(
+                GlassContainer(
+                  width: double.infinity,
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: _FeeInfoTile(
                               label: "Total Fee",
                               amount:
                                   "₹${student.feeAmount.toStringAsFixed(0)}",
-                              color: Colors.black,
+                              color: AppColors.textPrimary,
                             ),
-                            _FeeInfoTile(
+                          ),
+                          Expanded(
+                            child: _FeeInfoTile(
                               label: "Paid",
                               amount: "₹${student.paid.toStringAsFixed(0)}",
-                              color: Colors.green,
+                              color: AppColors.success,
                             ),
-                            _FeeInfoTile(
+                          ),
+                          Expanded(
+                            child: _FeeInfoTile(
                               label: "Pending",
                               amount: "₹${student.due.toStringAsFixed(0)}",
-                              color: Colors.red,
+                              color: AppColors.error,
                             ),
-                          ],
+                          ),
+                        ],
+                      ),
+                      Divider(height: 32.h, color: Colors.white24),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text(
+                          "Travel Status",
+                          style: TextStyle(color: Colors.white),
                         ),
-                        Divider(height: 32.h),
-                        const ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            "School Fee",
-                          ), // Generalizing Term 1/2 for now
-                          trailing: Chip(
-                            label: Text("Active"),
-                            backgroundColor: Colors.blueAccent,
+                        subtitle: Text(
+                          student.canTravel
+                              ? "Eligible for Transport"
+                              : "Payment Due / Not Eligible",
+                          style: TextStyle(
+                            color: Colors.white60,
+                            fontSize: 12.sp,
                           ),
                         ),
-                        // You can iterate over payments subcollection if needed later
-                        SizedBox(height: 8.h),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => PaymentHistoryScreen(
-                                    orgId: _orgId!,
-                                    studentUid: student.uid,
-                                  ),
+                        trailing: Chip(
+                          label: Text(
+                            student.canTravel ? "Active" : "Create Issue",
+                          ),
+                          backgroundColor: student.canTravel
+                              ? AppColors.success
+                              : AppColors.error,
+                          labelStyle: const TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      // You can iterate over payments subcollection if needed later
+                      SizedBox(height: 8.h),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => PaymentHistoryScreen(
+                                  orgId: _orgId!,
+                                  studentUid: student.uid,
                                 ),
-                              );
-                            },
-                            child: const Text("View Payment History"),
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.white54),
+                            foregroundColor: Colors.white,
                           ),
+                          child: const Text("View Payment History"),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
 
                 SizedBox(height: 32.h),
 
                 // Transport Details
-                if (student.busNumber != null || student.busStop != null) ...[
+                if (student.busNumber != null ||
+                    student.busStop != null ||
+                    student.routeName != null) ...[
                   Text(
                     "Transport Details",
                     style: TextStyle(
@@ -195,23 +219,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   SizedBox(height: 16.h),
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
+                  GlassContainer(
+                    width: double.infinity,
                     child: Column(
                       children: [
+                        if (student.routeName != null &&
+                            student.routeName!.isNotEmpty)
+                          ListTile(
+                            leading: const Icon(
+                              Icons.map,
+                              color: AppColors.primaryAccent,
+                            ),
+                            title: Text(
+                              student.routeName!,
+                              style: AppTextStyles.body,
+                            ),
+                            subtitle: const Text(
+                              "Route",
+                              style: TextStyle(color: Colors.white60),
+                            ),
+                          ),
                         if (student.busNumber != null)
                           ListTile(
-                            leading: const Icon(Icons.directions_bus),
-                            title: Text("Bus No: ${student.busNumber}"),
+                            leading: const Icon(
+                              Icons.directions_bus,
+                              color: AppColors.primaryAccent,
+                            ),
+                            title: Text(
+                              "Bus No: ${student.busNumber}",
+                              style: AppTextStyles.body,
+                            ),
                           ),
                         if (student.busStop != null)
                           ListTile(
-                            leading: const Icon(Icons.location_on),
-                            title: Text("${student.busStop}"),
-                            subtitle: const Text("Bus Stop"),
+                            leading: const Icon(
+                              Icons.location_on,
+                              color: AppColors.primaryAccent,
+                            ),
+                            title: Text(
+                              "${student.busStop}",
+                              style: AppTextStyles.body,
+                            ),
+                            subtitle: const Text(
+                              "Bus Stop",
+                              style: TextStyle(color: Colors.white60),
+                            ),
                           ),
                       ],
                     ),
@@ -228,44 +280,91 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 SizedBox(height: 16.h),
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
+                GlassContainer(
+                  width: double.infinity,
                   child: Column(
                     children: [
                       ListTile(
-                        leading: const Icon(Icons.person_outline),
-                        title: Text(student.parentName),
-                        subtitle: const Text("Parent/Guardian"),
+                        leading: const Icon(
+                          Icons.person_outline,
+                          color: AppColors.primaryAccent,
+                        ),
+                        title: Text(
+                          student.parentName,
+                          style: AppTextStyles.body,
+                        ),
+                        subtitle: const Text(
+                          "Parent/Guardian",
+                          style: TextStyle(color: Colors.white60),
+                        ),
                       ),
-                      const Divider(height: 1),
+                      const Divider(height: 1, color: Colors.white12),
                       ListTile(
-                        leading: const Icon(Icons.phone),
+                        leading: const Icon(
+                          Icons.phone,
+                          color: AppColors.primaryAccent,
+                        ),
                         title: Text(
                           student.parentPhone.isNotEmpty
                               ? student.parentPhone
                               : "N/A",
+                          style: AppTextStyles.body,
                         ),
-                        subtitle: const Text("Registered Mobile"),
+                        subtitle: const Text(
+                          "Registered Mobile",
+                          style: TextStyle(color: Colors.white60),
+                        ),
                       ),
-                      const Divider(height: 1),
+                      if (student.studentPhone != null &&
+                          student.studentPhone!.isNotEmpty) ...[
+                        const Divider(height: 1, color: Colors.white12),
+                        ListTile(
+                          leading: const Icon(
+                            Icons.smartphone,
+                            color: AppColors.primaryAccent,
+                          ),
+                          title: Text(
+                            student.studentPhone!,
+                            style: AppTextStyles.body,
+                          ),
+                          subtitle: const Text(
+                            "Student Phone",
+                            style: TextStyle(color: Colors.white60),
+                          ),
+                        ),
+                      ],
+                      const Divider(height: 1, color: Colors.white12),
                       ListTile(
-                        leading: const Icon(Icons.email_outlined),
+                        leading: const Icon(
+                          Icons.email_outlined,
+                          color: AppColors.primaryAccent,
+                        ),
                         title: Text(
                           student.parentEmail.isNotEmpty
                               ? student.parentEmail
                               : "N/A",
+                          style: AppTextStyles.body,
                         ),
-                        subtitle: const Text("Parent Email"),
+                        subtitle: const Text(
+                          "Parent Email",
+                          style: TextStyle(color: Colors.white60),
+                        ),
                       ),
-                      const Divider(height: 1),
+                      const Divider(height: 1, color: Colors.white12),
                       if (student.address != null)
                         ListTile(
-                          leading: const Icon(Icons.home),
-                          title: Text(student.address!),
-                          subtitle: const Text("Address"),
+                          leading: const Icon(
+                            Icons.home,
+                            color: AppColors.primaryAccent,
+                          ),
+                          title: Text(
+                            student.address!,
+                            style: AppTextStyles.body,
+                          ),
+                          subtitle: const Text(
+                            "Address",
+                            style: TextStyle(color: Colors.white60),
+                          ),
                         ),
                     ],
                   ),
@@ -325,15 +424,15 @@ class _FeeInfoTile extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+          style: AppTextStyles.bodySmall.copyWith(color: Colors.white60),
         ),
         SizedBox(height: 4.h),
         Text(
           amount,
-          style: TextStyle(
-            fontSize: 18.sp,
+          style: AppTextStyles.heading2.copyWith(
             fontWeight: FontWeight.bold,
             color: color,
+            fontSize: 18.sp,
           ),
         ),
       ],

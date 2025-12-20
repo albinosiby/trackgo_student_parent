@@ -2,22 +2,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/attendance_model.dart';
 import '../models/payment_model.dart';
 import '../models/student_model.dart';
+import '../models/notification_model.dart';
 
 class StudentRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Stream<StudentModel?> getStudentStream(String orgId, String parentUid) {
+  Stream<StudentModel?> getStudentStream(String orgId, String uid) {
     return _firestore
         .collection('organizations')
         .doc(orgId)
         .collection('students')
-        .where('parent_uid', isEqualTo: parentUid)
-        .limit(1)
+        .doc(uid)
         .snapshots()
         .map((snapshot) {
-          if (snapshot.docs.isNotEmpty) {
-            final doc = snapshot.docs.first;
-            return StudentModel.fromMap(doc.data(), doc.id);
+          if (snapshot.exists && snapshot.data() != null) {
+            return StudentModel.fromMap(snapshot.data()!, snapshot.id);
           }
           return null;
         });
@@ -56,5 +55,37 @@ class StudentRepository {
     return snapshot.docs
         .map((doc) => AttendanceModel.fromMap(doc.data(), doc.id))
         .toList();
+  }
+
+  Future<void> updateFcmToken(
+    String orgId,
+    String studentId,
+    String token,
+  ) async {
+    await _firestore
+        .collection('organizations')
+        .doc(orgId)
+        .collection('students')
+        .doc(studentId)
+        .update({'fcmToken': token});
+  }
+
+  Stream<List<NotificationModel>> getNotificationsStream(
+    String orgId,
+    String studentId,
+  ) {
+    return _firestore
+        .collection('organizations')
+        .doc(orgId)
+        .collection('students')
+        .doc(studentId)
+        .collection('notifications')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => NotificationModel.fromMap(doc.data(), doc.id))
+              .toList();
+        });
   }
 }
