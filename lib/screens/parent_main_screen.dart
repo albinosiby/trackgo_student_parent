@@ -26,7 +26,7 @@ class _ParentMainScreenState extends State<ParentMainScreen> {
     pages = [
       HomeScreen(orgId: widget.orgId),
       MapScreen(orgId: widget.orgId),
-      const AttendanceScreen(),
+      // const AttendanceScreen(),
       NotificationsScreen(orgId: widget.orgId),
       const ProfileScreen(),
     ];

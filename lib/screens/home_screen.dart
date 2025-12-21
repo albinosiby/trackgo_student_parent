@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'map_screen.dart';
 import '../services/auth_service.dart';
@@ -134,18 +136,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         child: CircleAvatar(
-                          radius: 28.r,
-                          backgroundColor: Colors.black26,
-                          backgroundImage: student.profilePhotoUrl != null
-                              ? NetworkImage(student.profilePhotoUrl!)
-                              : null,
-                          child: student.profilePhotoUrl == null
-                              ? Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: 28.r,
+                          radius: 30.r,
+                          backgroundColor: Colors.transparent,
+                          backgroundImage:
+                              (student.profilePhotoUrl != null &&
+                                  student.profilePhotoUrl!.isNotEmpty)
+                              ? CachedNetworkImageProvider(
+                                  student.profilePhotoUrl!,
                                 )
-                              : null,
+                              : const AssetImage(
+                                      'assets/dashboard_profile_mock.png',
+                                    )
+                                    as ImageProvider,
                         ),
                       ),
                       SizedBox(width: 16.w),
@@ -328,7 +330,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (_) => const MapScreen(),
+                                          builder: (_) =>
+                                              MapScreen(orgId: widget.orgId),
                                         ),
                                       );
                                     },

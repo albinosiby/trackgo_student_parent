@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'login_screen.dart';
 import '../services/auth_service.dart';
 import '../services/database_service.dart';
@@ -79,17 +81,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       CircleAvatar(
                         radius: 50.r,
-                        backgroundColor: Colors.indigo,
-                        backgroundImage: student.profilePhotoUrl != null
-                            ? NetworkImage(student.profilePhotoUrl!)
-                            : null,
-                        child: student.profilePhotoUrl == null
-                            ? Icon(
-                                Icons.person,
-                                size: 50.r,
-                                color: Colors.white,
+                        backgroundColor: Colors.transparent,
+                        backgroundImage:
+                            (student.profilePhotoUrl != null &&
+                                student.profilePhotoUrl!.isNotEmpty)
+                            ? CachedNetworkImageProvider(
+                                student.profilePhotoUrl!,
                               )
-                            : null,
+                            : const AssetImage(
+                                    'assets/dashboard_profile_mock.png',
+                                  )
+                                  as ImageProvider,
                       ),
                       SizedBox(height: 16.h),
                       Text(
@@ -111,7 +113,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 SizedBox(height: 32.h),
-
                 // Fee Details Section
                 Text(
                   "Fee Details",
