@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'home_screen.dart';
 import 'map_screen.dart';
-import 'attendance_screen.dart';
+// import 'attendance_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/background_wrapper.dart';
@@ -48,10 +48,10 @@ class _ParentMainScreenState extends State<ParentMainScreen> {
           destinations: const [
             NavigationDestination(icon: Icon(Icons.home), label: "Home"),
             NavigationDestination(icon: Icon(Icons.map), label: "Track"),
-            NavigationDestination(
-              icon: Icon(Icons.check_circle_outline),
-              label: "Attendance",
-            ),
+            // NavigationDestination(
+            //   icon: Icon(Icons.check_circle_outline),
+            //   label: "Attendance",
+            // ),
             NavigationDestination(
               icon: Icon(Icons.notifications),
               label: "Alerts",
