@@ -28,6 +28,9 @@ class StudentModel {
   final String parentPhone;
   final String parentEmail;
 
+  final bool updateAvailable;
+  final String? updateUrl;
+
   StudentModel({
     required this.uid,
     required this.fullName,
@@ -53,6 +56,8 @@ class StudentModel {
     required this.parentPhone,
     required this.parentEmail,
     this.isOnBus = false,
+    this.updateAvailable = false,
+    this.updateUrl,
   });
 
   factory StudentModel.fromMap(Map<String, dynamic> data, String uid) {
@@ -81,6 +86,8 @@ class StudentModel {
       parentPhone: data['parent_phone'] ?? '',
       parentEmail: data['parent_email'] ?? '',
       isOnBus: data['is_on_bus'] ?? false,
+      updateAvailable: data['update_available'] ?? false,
+      updateUrl: data['update_url'],
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'widgets/connectivity_wrapper.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -46,6 +47,11 @@ class ParentApp extends StatelessWidget {
           title: "Parent App",
           debugShowCheckedModeBanner: false,
           theme: AppTheme.darkTheme,
+          builder: (context, child) {
+            // Wrap the app with ConnectivityWrapper to show offline dialog
+            // child is the Navigator or Home widget
+            return ConnectivityWrapper(child: child ?? const SizedBox.shrink());
+          },
           home: FirebaseAuth.instance.currentUser != null && orgId != null
               ? ParentMainScreen(orgId: orgId!)
               : const LoginScreen(),
