@@ -1,0 +1,81 @@
+TrackGo Parent App - System Integration Documentation
+1. Executive Summary
+TrackGo Student Parent is a high-performance Flutter application designed to bridge the communication gap between parents, schools, and transportation services. It provides parents with real-time visibility into their child's safety, location, and academic logistics integration. The app features a modern "Dark Premium Glassmorphism" aesthetic, ensuring a visually engaging and intuitive user experience.
+
+2. Core Functional Modules
+A. Dashboard & Student Profile
+Overview: Central hub displaying student details, "Boarded/Not Boarded" status, and today's bus status (Active/Inactive).
+Key Features:
+Visual Status Pills: Neon-coded indicators for quick status assessment.
+Image Caching: Profile photos are cached locally using cached_network_image for instant loading and offline access.
+Smart Greeting: Personalized welcome message based on time of day.
+B. Live Bus Tracking (The "Track" Tab)
+Features:
+Real-Time Coordinates: Integrates with Firebase Realtime Database to fetch latitude/longitude updates every few milliseconds.
+Interactive Map: Built with flutter_map, supporting custom markers and auto-centering on the bus.
+Robust Parsing: Capable of handling various coordinate formats (e.g., "12.00° N", "77.50° E") sent by hardware GPS trackers.
+C. Alerts & Notifications
+Features:
+Cloud-Synced Streams: Listens to a dedicated notifications sub-collection in Firestore for real-time alerts.
+Categorized Icons: Visual distinction between "Bus Assignment" (Cyan), "Entry/Exit" (Green), and general alerts.
+Glass UI: Notifications are presented in semi-transparent glass tiles for readability against the dark theme.
+D. Fee Management
+Features:
+Payment History: Detailed list of past transactions with mode of payment (UPI, Card, Cash) and reference IDs.
+Status Indicators: Neon green success badges for confirmed payments.
+E. App Update Mechanism
+Remote Config via Firestore: The app listens to the student's Firestore document.
+Forced Update: If update_available is true, a non-dismissible dialog forces the user to update.
+Direct Link: Integrated url_launcher to download the APK directly from a provided URL (e.g., Google Drive).
+3. Technical Architecture
+A. Tech Stack
+Framework: Flutter (Dart)
+Backend Service: Google Firebase
+Authentication: firebase_auth (Email/Password & Anonymous)
+Database: cloud_firestore (User data, logs)
+Realtime DB: firebase_database (GPS Coordinates)
+B. Resilience & Performance
+Offline Persistence: Both Firestore and Realtime Database are configured with setPersistenceEnabled(true). The app remains fully functional (reading cached data) even without an internet connection.
+Global Connectivity Monitor:
+Uses connectivity_plus to monitor network state.
+Blocker Overlay: A full-screen "No Internet" glass overlay appears automatically if the network drops, preventing undefined states.
+C. UI Design System
+Theme: Dark Glassmorphism.
+Colors:
+Background: LinearGradient (Deep Night Blue #0F2027 to #2C5364).
+Accents: Electric Cyan (#00E5FF) and Neon Green (#00FF9D).
+Components: Custom 
+GlassContainer
+ widget used universally to provide depth and texture.
+4. User Data Privacy
+Data is strictly scoped to the logged-in user's Organization ID (orgId) and Student UID.
+Parents can only access data relevant to their assigned children.
+5. Database Architecture
+A. Cloud Firestore (NoSQL)
+Structured hierarchically under organizations to ensure multi-tenancy support.
+
+Collections Structure
+organizations/{orgId}: Root document for an institute.
+students/{studentUid}: Stores student profiles, parent details, and status.
+Fields: roll_number, parent_uid, bus_id, route_id, update_available, etc.
+attendance/{attendanceId}: Sub-collection for daily logs (Entry/Exit).
+notifications/{notifId}: Sub-collection for user-specific alerts.
+payments/{paymentId}: Sub-collection for fee history.
+buses/{busId}: Static bus details (Number, Capacity).
+drivers/{driverId}: Driver profiles linked to buses.
+routes/{routeId}: Defined paths and stops.
+trips/{tripId}: Historical logs of completed trips.
+B. Firebase Realtime Database (RTDB)
+Used exclusively for high-frequency, low-latency live tracking updates.
+
+Structure
+organizations/{orgId}/buses/{busId}
+current_location: { latitude: double, longitude: double }
+speed: double
+heading: double
+timestamp: long
+status: 'active' | 'inactive'
+trip_id: string (Links to current active trip)
+C. Data Synchronization
+Firestore: Uses snapshot listeners for low-frequency updates (e.g., student boarding status, notifications).
+Realtime DB: Uses event listeners for high-frequency updates (e.g., bus moving on map).
