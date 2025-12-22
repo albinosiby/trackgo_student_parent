@@ -407,6 +407,90 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
                 // ... ETA Card can remain static or be updated similarly
+
+                // Dynamic Status Message
+                StreamBuilder<BusModel?>(
+                  stream: student.busId != null
+                      ? _dbService.getBusStream(widget.orgId, student.busId!)
+                      : null,
+                  builder: (context, busSnapshot) {
+                    if (!busSnapshot.hasData || busSnapshot.data == null) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final bus = busSnapshot.data!;
+                    final isTripStarted =
+                        bus.tripStatus ==
+                        "Trip started"; // Check exact string from backend
+                    final isOnBus = student.isOnBus;
+
+                    if (isOnBus) {
+                      return Padding(
+                        padding: EdgeInsets.only(top: 24.h),
+                        child: GlassContainer(
+                          padding: EdgeInsets.symmetric(
+                            vertical: 16.h,
+                            horizontal: 20.w,
+                          ),
+                          borderColor: AppColors.success.withOpacity(0.5),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.check_circle,
+                                color: AppColors.success,
+                                size: 24.sp,
+                              ),
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: Text(
+                                  "You have boarded successfully",
+                                  style: TextStyle(
+                                    color: AppColors.success,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16.sp,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    } else if (isTripStarted) {
+                      return Padding(
+                        padding: EdgeInsets.only(top: 24.h),
+                        child: GlassContainer(
+                          padding: EdgeInsets.symmetric(
+                            vertical: 16.h,
+                            horizontal: 20.w,
+                          ),
+                          borderColor: Colors.amber.withOpacity(0.5),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.access_time_filled,
+                                color: Colors.amber,
+                                size: 24.sp,
+                              ),
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: Text(
+                                  "Please be ready on stop, trip has started",
+                                  style: TextStyle(
+                                    color: Colors.amber,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16.sp,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+
+                    return const SizedBox.shrink();
+                  },
+                ),
               ],
             ),
           ),

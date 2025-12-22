@@ -160,18 +160,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           "Travel Status",
                           style: TextStyle(color: Colors.white),
                         ),
-                        subtitle: Text(
-                          student.canTravel
-                              ? "Eligible for Transport"
-                              : "Payment Due / Not Eligible",
-                          style: TextStyle(
-                            color: Colors.white60,
-                            fontSize: 12.sp,
-                          ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              student.canTravel
+                                  ? "Eligible for Transport"
+                                  : "Service Suspended",
+                              style: TextStyle(
+                                color: student.canTravel
+                                    ? Colors.white60
+                                    : AppColors.error,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                            if (!student.canTravel)
+                              Padding(
+                                padding: EdgeInsets.only(top: 4.h),
+                                child: Text(
+                                  "Pay the fees to get your seats on bus",
+                                  style: TextStyle(
+                                    color: AppColors.error,
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                         trailing: Chip(
                           label: Text(
-                            student.canTravel ? "Active" : "Create Issue",
+                            student.canTravel ? "Active" : "Deactive",
                           ),
                           backgroundColor: student.canTravel
                               ? AppColors.success

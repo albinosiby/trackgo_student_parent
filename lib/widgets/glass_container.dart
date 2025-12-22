@@ -11,6 +11,7 @@ class GlassContainer extends StatelessWidget {
   final double borderRadius;
   final double blur;
   final double borderOpacity;
+  final Color? borderColor; // NEW
 
   const GlassContainer({
     super.key,
@@ -22,6 +23,7 @@ class GlassContainer extends StatelessWidget {
     this.borderRadius = 20.0,
     this.blur = 10.0,
     this.borderOpacity = 0.1,
+    this.borderColor, // NEW
   });
 
   @override
@@ -40,7 +42,11 @@ class GlassContainer extends StatelessWidget {
               color: AppColors.glassFill,
               borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
-                color: Colors.white.withOpacity(borderOpacity),
+                color:
+                    borderColor ??
+                    Colors.white.withOpacity(
+                      borderOpacity,
+                    ), // Use custom color if provided
                 width: 1.0,
               ),
               boxShadow: const [

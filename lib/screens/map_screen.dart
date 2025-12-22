@@ -59,11 +59,30 @@ class _MapScreenState extends State<MapScreen> {
       final studentStream = _dbService.getStudent(widget.orgId, user.uid);
       print("DEBUG: Fetching student stream...");
       final student = await studentStream.first;
+
+      if (student == null) {
+        if (!_isDisposed) setState(() => _error = "Student profile not found.");
+        return;
+      }
+
       print(
-        "DEBUG: Student data fetched: ${student?.fullName}, BusID: ${student?.busId}",
+        "DEBUG: Student data fetched: ${student.fullName}, BusID: ${student.busId}, CanTravel: ${student.canTravel}",
       );
 
-      if (student == null || student.busId == null || student.busId!.isEmpty) {
+      // 2. Check Permission (canTravel)
+      if (!student.canTravel) {
+        print("DEBUG: canTravel is false");
+        if (!_isDisposed)
+          setState(() {
+            _isLoading = false;
+            _error =
+                "Service Suspended.\nPlease pay fees to unlock live tracking.";
+          });
+        return;
+      }
+
+      // 3. Get Bus Details
+      if (student.busId == null || student.busId!.isEmpty) {
         print("DEBUG: No bus assigned");
         if (!_isDisposed)
           setState(() {
