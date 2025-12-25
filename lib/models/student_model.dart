@@ -11,6 +11,7 @@ class StudentModel {
   final String? address;
   final String? dob;
   final String? busStop;
+  final String? busStopId;
   final String? email; // Student/User email
   final double feeAmount;
   final double paid;
@@ -43,6 +44,7 @@ class StudentModel {
     this.address,
     this.dob,
     this.busStop,
+    this.busStopId,
     this.email,
     this.feeAmount = 0.0,
     this.paid = 0.0,
@@ -73,6 +75,7 @@ class StudentModel {
       address: data['address'],
       dob: data['dob'],
       busStop: data['bus_stop'],
+      busStopId: data['bus_stop_id'],
       email: data['email'],
       feeAmount: double.tryParse(data['fee_amount']?.toString() ?? '0') ?? 0.0,
       paid: double.tryParse(data['paid']?.toString() ?? '0') ?? 0.0,

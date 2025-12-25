@@ -8,6 +8,7 @@ import 'package:firebase_database/firebase_database.dart';
 import '../services/database_service.dart';
 import '../widgets/background_wrapper.dart';
 import '../theme/app_colors.dart';
+import '../models/stop_model.dart';
 
 class MapScreen extends StatefulWidget {
   final String orgId;
@@ -23,6 +24,8 @@ class _MapScreenState extends State<MapScreen> {
 
   LatLng? _busLocation;
   String? _busNumber;
+  LatLng? _stopLocation;
+  String? _stopName;
   bool _isLoading = true;
   String? _error;
   StreamSubscription? _locationSubscription;
@@ -68,6 +71,69 @@ class _MapScreenState extends State<MapScreen> {
       print(
         "DEBUG: Student data fetched: ${student.fullName}, BusID: ${student.busId}, CanTravel: ${student.canTravel}",
       );
+
+      // 1.5 Fetch Stop Details if available
+      // 1.5 Fetch Stop Details if available
+      StopModel? stop;
+      if (student.busStopId != null) {
+        try {
+          stop = await _dbService.getStop(widget.orgId, student.busStopId!);
+        } catch (e) {
+          print("DEBUG: Error fetching stop by ID: $e");
+        }
+      }
+
+      // Fallback: Fetch by Name if ID failed or didn't exist
+      if (stop == null &&
+          student.busStop != null &&
+          student.busStop!.isNotEmpty) {
+        try {
+          print("DEBUG: Fetching stop by name: ${student.busStop}");
+          stop = await _dbService.getStopByName(widget.orgId, student.busStop!);
+        } catch (e) {
+          print("DEBUG: Error fetching stop by Name: $e");
+        }
+      }
+
+      // Final Fallback: Check if student is in 'assigned_students' array
+      if (stop == null) {
+        try {
+          // Try using UID first, then Roll Number just in case
+          print(
+            "DEBUG: Finding stop by assigned_students (UID: ${student.uid})",
+          );
+          stop = await _dbService.findStopByStudent(widget.orgId, student.uid);
+
+          if (stop == null && student.uid != student.rollNumber) {
+            print(
+              "DEBUG: Finding stop by assigned_students (Roll: ${student.rollNumber})",
+            );
+            stop = await _dbService.findStopByStudent(
+              widget.orgId,
+              student.rollNumber,
+            );
+          }
+        } catch (e) {
+          print("DEBUG: Error finding stop by assignment: $e");
+        }
+      }
+
+      if (stop != null) {
+        final finalStop = stop;
+        print(
+          "DEBUG: Stop fetched: ${finalStop.name} (${finalStop.lat}, ${finalStop.long})",
+        );
+        if (!_isDisposed) {
+          setState(() {
+            _stopLocation = LatLng(finalStop.lat, finalStop.long);
+            _stopName = finalStop.name;
+          });
+        }
+      } else {
+        print(
+          "DEBUG: Could not find stop info for ${student.busStopId} / ${student.busStop}",
+        );
+      }
 
       // 2. Check Permission (canTravel)
       if (!student.canTravel) {
@@ -206,11 +272,12 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildBody() {
-    if (_isLoading && _busLocation == null) {
+    if (_isLoading && _busLocation == null && _stopLocation == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_error != null) {
+    if (_error != null && _busLocation == null) {
+      // Show error only if no bus location (and maybe no stop)
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -223,7 +290,8 @@ class _MapScreenState extends State<MapScreen> {
       );
     }
 
-    final center = _busLocation ?? const LatLng(0, 0);
+    // Default center to stop location if bus is not available yet, or (0,0)
+    final center = _busLocation ?? _stopLocation ?? const LatLng(0, 0);
 
     return FlutterMap(
       mapController: _mapController,
@@ -232,9 +300,11 @@ class _MapScreenState extends State<MapScreen> {
         initialZoom: 15.0,
         onMapReady: () {
           _isMapReady = true;
-          // If we already have a location but weren't ready before, move now
+          // Prioritize bus location, then stop location
           if (_busLocation != null) {
             _mapController.move(_busLocation!, 15);
+          } else if (_stopLocation != null) {
+            _mapController.move(_stopLocation!, 15);
           }
         },
       ),
@@ -245,6 +315,43 @@ class _MapScreenState extends State<MapScreen> {
         ),
         MarkerLayer(
           markers: [
+            // Stop Marker
+            if (_stopLocation != null)
+              Marker(
+                point: _stopLocation!,
+                width: 80.w,
+                height: 80.h,
+                child: Column(
+                  children: [
+                    Icon(Icons.place, color: Colors.redAccent, size: 30.r),
+                    if (_stopName != null)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 2.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black26, blurRadius: 4),
+                          ],
+                        ),
+                        child: Text(
+                          _stopName!,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            fontSize: 10.sp,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+            // Bus Marker
             if (_busLocation != null)
               Marker(
                 point: _busLocation!,

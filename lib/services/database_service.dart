@@ -2,6 +2,7 @@ import '../models/bus_model.dart';
 import '../models/driver_model.dart';
 import '../models/organization_model.dart';
 import '../models/student_model.dart';
+import '../models/stop_model.dart';
 import '../models/payment_model.dart';
 import '../models/attendance_model.dart';
 import '../repositories/bus_repository.dart';
@@ -41,5 +42,17 @@ class DatabaseService {
 
   Future<void> updateFcmToken(String orgId, String studentUid, String token) {
     return _studentRepo.updateFcmToken(orgId, studentUid, token);
+  }
+
+  Future<StopModel?> getStop(String orgId, String stopId) {
+    return _orgRepo.getStop(orgId, stopId);
+  }
+
+  Future<StopModel?> getStopByName(String orgId, String stopName) {
+    return _orgRepo.getStopByName(orgId, stopName);
+  }
+
+  Future<StopModel?> findStopByStudent(String orgId, String studentUid) {
+    return _orgRepo.findStopByStudent(orgId, studentUid);
   }
 }

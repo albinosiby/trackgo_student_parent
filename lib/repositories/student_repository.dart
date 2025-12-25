@@ -88,4 +88,22 @@ class StudentRepository {
               .toList();
         });
   }
+
+  Future<void> clearNotifications(String orgId, String studentId) async {
+    final collection = _firestore
+        .collection('organizations')
+        .doc(orgId)
+        .collection('students')
+        .doc(studentId)
+        .collection('notifications');
+
+    final snapshot = await collection.get();
+    if (snapshot.docs.isEmpty) return;
+
+    final batch = _firestore.batch();
+    for (var doc in snapshot.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
+  }
 }

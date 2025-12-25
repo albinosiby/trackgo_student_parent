@@ -35,29 +35,25 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _setupNotifications() async {
-    await _notificationService.initialize();
-    final token = await _notificationService.getToken();
-    final user = _authService.currentUser;
+    try {
+      await _notificationService.initialize();
+      final token = await _notificationService.getToken();
+      final user = _authService.currentUser;
 
-    if (token != null && user != null) {
-      // We need to find the student ID to update the token.
-      // Since we only have orgId and user.uid here, we rely on the stream to get the StudentModel first
-      // OR we can do a one-off fetch.
-      // For simplicity/reliability, let's look up the student by parent_uid one-off.
-
-      final dbService = DatabaseService();
-      // Note: DatabaseService.getStudent returns a Stream.
-      // We'll use a direct repository call or helper here to avoid stream complexity in initState.
-      // Actually, we can reuse the repository logic if exposed, or just do it here.
-      // Wait, dbService.getStudent is a Stream.
-      // Let's implement a 'getStudentFuture' in dbService or just listen to the first element of the stream.
-
-      dbService.getStudent(widget.orgId, user.uid).first.then((student) {
-        if (student != null) {
-          dbService.updateFcmToken(widget.orgId, student.uid, token);
-          print("FCM Token Updated for ${student.fullName}");
+      if (token != null && user != null) {
+        // We need to find the student ID to update the token.
+        final dbService = DatabaseService();
+        // Use a single subscription to get the data once and cancel
+        final snapshot = await dbService
+            .getStudent(widget.orgId, user.uid)
+            .first;
+        if (snapshot != null) {
+          await dbService.updateFcmToken(widget.orgId, snapshot.uid, token);
+          print("FCM Token Updated for ${snapshot.fullName}");
         }
-      });
+      }
+    } catch (e) {
+      print("Error setting up notifications: $e");
     }
   }
 

@@ -63,7 +63,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         final student = studentSnapshot.data!;
 
         return Scaffold(
-          appBar: AppBar(title: const Text("Alerts & Notifications")),
+          appBar: AppBar(
+            title: const Text("Alerts & Notifications"),
+            // actions: [
+            //   IconButton(
+            //     icon: const Icon(Icons.delete_sweep, color: AppColors.error),
+            //     onPressed: () => _showClearDialog(context, student.uid),
+            //   ),
+            // ],
+          ),
           // 2. Fetch Notifications using student.uid
           body: StreamBuilder<List<NotificationModel>>(
             stream: _studentRepository.getNotificationsStream(
@@ -182,5 +190,55 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   String _formatDate(DateTime dt) {
     // Simple helper if intl is not preferred, or assume standard usage
     return "${dt.day}/${dt.month}/${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}";
+  }
+
+  Future<void> _showClearDialog(BuildContext context, String studentId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E2A38), // Dark theme approximation
+        title: const Text(
+          "Clear Notifications?",
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          "This will delete all your notifications permanently.",
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text(
+              "Cancel",
+              style: TextStyle(color: Colors.white60),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              "Clear All",
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await _studentRepository.clearNotifications(widget.orgId, studentId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Notifications cleared")),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error clearing notifications: $e")),
+          );
+        }
+      }
+    }
   }
 }
